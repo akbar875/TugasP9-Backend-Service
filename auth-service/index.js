@@ -8,16 +8,21 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
+// Registrasi
 app.post('/auth/register', async (req, res) => {
     const { name, email, password, role } = req.body;
+    
+    // nama, email, password wajib diisi
     if (!name || !email || !password)
         return res.status(400).json({ message: 'name, email, password wajib diisi' });
     
     try {
         const [cek] = await pool.query('SELECT id FROM users WHERE email=?', [email]);
+        // email sudah terdaftar
         if (cek.length > 0)
             return res.status(409).json({ message: 'Email sudah terdaftar' });
     
+        // Menggunakan bcrypt untuk enkripsi password
         const hash = await bcrypt.hash(password, 10);
         const userRole = role === 'admin' ? 'admin' : 'customer';
         const [result] = await pool.query('INSERT INTO users (name,email,password,role) VALUES (?,?,?,?)', [name, email, hash, userRole]
@@ -29,19 +34,24 @@ app.post('/auth/register', async (req, res) => {
     }
 });
 
+// Login
 app.post('/auth/login', async (req, res) => {
     const { email, password } = req.body;
+    
+    // email dan password wajib diisi
     if (!email || !password)
         return res.status(400).json({ message: 'Email dan password wajib diisi' });
   
     try {
         const [rows] = await pool.query('SELECT * FROM users WHERE email=?', [email]);
+        // email atau password salah
         if (rows.length === 0)
             return res.status(401).json({ message: 'Email atau password salah' });
     
         const user = rows[0];
         const match = await bcrypt.compare(password, user.password);
     
+        // email atau password salah
         if (!match)
             return res.status(401).json({ message: 'Email atau password salah' });
     
@@ -54,6 +64,7 @@ app.post('/auth/login', async (req, res) => {
     }
 });
 
+// Menjalankan server
 app.listen(process.env.PORT, () =>
-  console.log('Auth Service jalan di port', process.env.PORT)
+    console.log('Auth Service jalan di port', process.env.PORT)
 );
