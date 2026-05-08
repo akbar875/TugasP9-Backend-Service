@@ -4,22 +4,23 @@ require('dotenv').config();
 
 const app = express();
 
+// Untuk mengonsumsi pesan
 async function startConsumer() {
     // Koneksi ke RabbitMQ
     const conn = await amqplib.connect(process.env.RABBITMQ_URL);
     const ch = await conn.createChannel();
 
-    // Membuat queue
+    // Membuat queue dan menunggu pesan
     await ch.assertQueue('order_created', { durable: true });
     console.log('[Notification] Menunggu pesan...');
     
-    // Konsumsi pesan
+    // Konsumsi pesan dari queue
     ch.consume('order_created', (msg) => {
         // Pesan tidak ada
         if (!msg) 
             return;
 
-        // Kirim pesan
+        // Kirim pesan ke console mengenai order yang dibuat
         const data = JSON.parse(msg.content.toString());
         console.log('+++ NOTIFIKASI ORDER BARU +++');
         console.log('Order ID:', data.orderId);
@@ -29,12 +30,12 @@ async function startConsumer() {
         console.log('Total: Rp', data.total);
         console.log('-----------------------------');
 
-        // Konfirmasi pesan
+        // Konfirmasi pesan diterima
         ch.ack(msg);
     });
 }
 
-// Mulai consumer
+// Mulai consumer mengonsumsi pesan
 startConsumer().catch(console.error);
 
 // Mendapatkan status server dapat dijalankan

@@ -8,7 +8,7 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
-// Registrasi
+// Metode Registrasi untuk mendaftar akun
 app.post('/auth/register', async (req, res) => {
     const { name, email, password, role } = req.body;
     
@@ -34,7 +34,7 @@ app.post('/auth/register', async (req, res) => {
     }
 });
 
-// Login
+// Metode untuk Login untuk mendapatkan token
 app.post('/auth/login', async (req, res) => {
     const { email, password } = req.body;
     

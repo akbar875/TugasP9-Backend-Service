@@ -7,7 +7,7 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
-// Kirim pesan ke RabbitMQ
+// Kirim pesan ke RabbitMQ untuk notifikasi
 async function publish(data) {
     // Kirim pesan ke RabbitMQ
     const conn = await amqplib.connect(process.env.RABBITMQ_URL);
@@ -21,7 +21,7 @@ async function publish(data) {
     setTimeout(() => conn.close(), 300);
 }
 
-// Menambahkan pesanan
+// Menambahkan pesanan dari user
 app.post('/orders', authenticate, async (req, res) => {
     const { product_id, quantity } = req.body;
     // product_id dan quantity wajib diisi
@@ -39,12 +39,12 @@ app.post('/orders', authenticate, async (req, res) => {
         if (p.stock < quantity)
             return res.status(400).json({ message: 'Stok tidak mencukupi' });
     
-        // Membuat pesanan
+        // Membuat pesanan dari user
         const total = p.price * quantity;
         await pool.query('UPDATE products SET stock=stock-? WHERE id=?', [quantity, product_id]);
         const [result] = await pool.query( 'INSERT INTO orders (user_id,product_id,quantity,total_price) VALUES (?,?,?,?)', [req.user.id, product_id, quantity, total]);
     
-        // Kirim pesan
+        // Kirim pesan ke RabbitMQ
         await publish({
             orderId: result.insertId,
             userId: req.user.id,
@@ -62,7 +62,7 @@ app.post('/orders', authenticate, async (req, res) => {
     }
 });
 
-// Mendapatkan semua pesanan
+// Mendapatkan semua pesanan dari user
 app.get('/orders', authenticate, async (req, res) => {
     let rows;
     // admin dapat melihat semua pesanan

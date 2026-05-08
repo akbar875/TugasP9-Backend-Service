@@ -6,13 +6,13 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
-// Mendapatkan semua produk
+// Mendapatkan semua produk dari database
 app.get('/products', async (req, res) => {
     const [rows] = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
     res.json({ data: rows });
 });
 
-// Mendapatkan produk berdasarkan ID
+// Mendapatkan produk berdasarkan ID dari database
 app.get('/products/:id', async (req, res) => {
     const [rows] = await pool.query('SELECT * FROM products WHERE id=?', [req.params.id]);
     // produk tidak ditemukan
@@ -22,7 +22,7 @@ app.get('/products/:id', async (req, res) => {
     res.json({ data: rows[0] });
 });
 
-// Menambahkan produk
+// Menambahkan produk ke database
 app.post('/products', authenticate, adminOnly, async (req, res) => {
     const { name, price, stock } = req.body;
     // name, price, stock wajib diisi
@@ -38,7 +38,7 @@ app.post('/products', authenticate, adminOnly, async (req, res) => {
     res.status(201).json({ message: 'Produk ditambahkan', data: { id: result.insertId, name, price, stock }});
 });
 
-// Mengupdate produk
+// Mengupdate produk dalam database
 app.put('/products/:id', authenticate, adminOnly, async (req, res) => {
     const { name, price, stock } = req.body;
     // name, price, stock wajib diisi
@@ -54,7 +54,7 @@ app.put('/products/:id', authenticate, adminOnly, async (req, res) => {
     res.json({ message: 'Produk diupdate' });
 });
 
-// Menghapus produk
+// Menghapus produk dari database
 app.delete('/products/:id', authenticate, adminOnly, async (req, res) => {
     const [result] = await pool.query('DELETE FROM products WHERE id=?', [req.params.id]);
     // produk tidak ditemukan
