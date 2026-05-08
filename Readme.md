@@ -9,29 +9,29 @@ Kelas: Informatika
 TugasP9/
 ├── api-gateway/
 │   ├── .env
-│   ├── index.js
+│   ├── gateway-elektronik.js
 │   └── package.json
 ├── auth-service/
 │   ├── .env
 │   ├── db.js
-│   ├── index.js
+│   ├── auth-elektronik.js
 │   ├── middleware.js
 │   └── package.json
 ├── product-service/
 │   ├── .env
 │   ├── db.js
-│   ├── index.js
+│   ├── product-elektronik.js
 │   ├── middleware.js
 │   └── package.json
 ├── order-service/
 │   ├── .env
 │   ├── db.js
-│   ├── index.js
+│   ├── order-elektronik.js
 │   ├── middleware.js
 │   └── package.json
 ├── notification-service/
 │   ├── .env
-│   ├── index.js
+│   ├── notification-elektronik.js
 │   └── package.json
 └── README.md
 
@@ -50,29 +50,29 @@ Buka 5 terminal, jalankan masing-masing:
 
 ```bash
 cd auth-service 
-node index.js
+node auth-elektronik.js
 
 cd product-service
-node index.js
+node product-elektronik.js
 
 cd order-service
-node index.js
+node order-elektronik.js
 
 cd notification-service
-node index.js
+node notification-elektronik.js
 
 cd api-gateway
-node index.js
+node gateway-elektronik.js
 ```
 
 Di server menggunakan PM2:
 
 ```bash
-pm2 start auth-service/index.js
-pm2 start product-service/index.js
-pm2 start order-service/index.js
-pm2 start notification-service/index.js
-pm2 start api-gateway/index.js
+pm2 start auth-service/auth-elektronik.js --name auth-service
+pm2 start product-service/product-elektronik.js --name product-service
+pm2 start order-service/order-elektronik.js --name order-service
+pm2 start notification-service/notification-elektronik.js --name notification-service
+pm2 start api-gateway/gateway-elektronik.js --name api-gateway
 ```
 
 ## Endpoint
@@ -91,14 +91,28 @@ Base URL: `http://localhost:3170`
 | GET    | /orders        | Bearer| List order         |
 
 ## Contoh Request dan Response
+
+### Health Check
+Request:
+```
+GET /health
+```
+Response:
+```json
+{
+  "status": "UP",
+  "timestamp": "2026-05-08T10:00:00.000Z"
+}
+```
+
 ### Register
 Request:
 ```json
 POST /auth/register
 {
   "name": "Akbar",
-  "email": "akbarandika@gmail.com",
-  "password": "akbar123",
+  "email": "akbar@mail.com",
+  "password": "123456",
   "role": "admin"
 }
 ```
@@ -106,7 +120,7 @@ Response:
 ```json
 {
   "message": "Registrasi berhasil",
-  "data": { "id": 1, "name": "Akbar", "email": "akbarandika@gmail.com", "role": "admin" }
+  "data": { "id": 1, "name": "Akbar", "email": "akbar@mail.com", "role": "admin" }
 }
 ```
 
@@ -115,8 +129,8 @@ Request:
 ```json
 POST /auth/login
 {
-  "email": "akbar@gmail.com",
-  "password": "akbar123"
+  "email": "akbar@mail.com",
+  "password": "123456"
 }
 ```
 Response:
@@ -127,22 +141,79 @@ Response:
 }
 ```
 
+### List Produk
+Request:
+```
+GET /products
+```
+Response:
+```json
+{
+  "data": [
+    { "id": 1, "name": "Laptop", "price": "15000000.00", "stock": 10, "created_at": "2026-05-08T10:00:00.000Z" }
+  ]
+}
+```
+
+### Detail Produk
+Request:
+```
+GET /products/1
+```
+Response:
+```json
+{
+  "data": { "id": 1, "name": "Laptop", "price": "15000000.00", "stock": 10, "created_at": "2026-05-08T10:00:00.000Z" }
+}
+```
+
 ### Tambah Produk
 Request:
 ```json
 POST /products
-Authorization: Bearer <token>
+Authorization: Bearer 
 {
-  "name": "Iphone 17 Pro Max",
-  "price": 25000000,
-  "stock": 5
+  "name": "Laptop",
+  "price": 15000000,
+  "stock": 10
 }
 ```
 Response:
 ```json
 {
   "message": "Produk ditambahkan",
-  "data": { "id": 1, "name": "Iphone 17 Pro Max", "price": 25000000, "stock": 5 }
+  "data": { "id": 1, "name": "Laptop", "price": 15000000, "stock": 10, "created_at": "2026-05-08T10:00:00.000Z" }
+}
+```
+
+### Update Produk
+Request:
+```json
+PUT /products/1
+Authorization: Bearer 
+{
+  "name": "Laptop Pro",
+  "price": 17000000,
+  "stock": 8
+}
+```
+Response:
+```json
+{
+  "message": "Produk diupdate"
+}
+```
+
+### Hapus Produk
+Request:
+```
+DELETE /products/1
+Authorization: Bearer <token>
+```
+Response:
+```json
+{
+  "message": "Produk dihapus"
 }
 ```
 
@@ -150,7 +221,7 @@ Response:
 Request:
 ```json
 POST /orders
-Authorization: Bearer <token>
+Authorization: Bearer 
 {
   "product_id": 1,
   "quantity": 2
@@ -160,16 +231,31 @@ Response:
 ```json
 {
   "message": "Order berhasil dibuat",
-  "data": { "id": 1, "product_id": 1, "quantity": 2, "total_price": 50000000, "status": "pending" }
+  "data": { "id": 1, "product_id": 1, "quantity": 2, "total_price": 30000000, "status": "pending", "created_at": "2026-05-08T10:05:00.000Z" }
 }
 ```
-Setelah order dibuat, Notification Service akan menerima pesan dari RabbitMQ dan menampilkan log di terminal:
+Notification Service akan menerima pesan dari RabbitMQ dan menampilkan log:
 ```
-+++ NOTIFIKASI ORDER BARU +++
+--- NOTIFIKASI ORDER BARU ---
 Order ID : 1
-User : Akbar
-Produk : Iphone 17 Pro Max
-Qty : 2
-Total : Rp 50000000
+User     : Akbar
+Produk   : Laptop
+Qty      : 2
+Total    : Rp 30000000
 -----------------------------
+```
+
+### List Order
+Request:
+```
+GET /orders
+Authorization: Bearer <token>
+```
+Response:
+```json
+{
+  "data": [
+    { "id": 1, "user_id": 1, "product_id": 1, "quantity": 2, "total_price": "30000000.00", "status": "pending", "created_at": "2026-05-08T10:05:00.000Z" }
+  ]
+}
 ```

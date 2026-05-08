@@ -11,13 +11,9 @@ app.use(express.json());
 async function publish(data) {
     // Kirim pesan ke RabbitMQ
     const conn = await amqplib.connect(process.env.RABBITMQ_URL);
-    // Membuat channel
     const ch = await conn.createChannel();
-    // Membuat queue
     await ch.assertQueue('order_created', { durable: true });
-    // Kirim pesan
     ch.sendToQueue('order_created', Buffer.from(JSON.stringify(data)), { persistent: true });
-    // Tutup koneksi
     setTimeout(() => conn.close(), 300);
 }
 
