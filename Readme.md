@@ -1,10 +1,8 @@
-````markdown
 # TugasP9-Backend Service Sistem Manajemen Toko
 
 Nama: Akbar Fitri Andhika
 NIM: 2410511011
-Kelas: Informatika A
----
+Kelas: Informatika 
 
 ## Arsitektur
 ```
@@ -37,10 +35,8 @@ TugasP9/
 │   └── package.json
 └── README.md
 
-Order Service --> RabbitMQ --> Notification Service (3094)
+Order Service -> RabbitMQ -> Notification Service (3094)
 ```
-
----
 ## Cara Menjalankan
 
 Pastikan XAMPP (MySQL) dan RabbitMQ sudah berjalan.
@@ -79,8 +75,6 @@ pm2 start notification-service/index.js
 pm2 start api-gateway/index.js
 ```
 
----
-
 ## Endpoint
 Base URL: `http://localhost:3170`
 
@@ -95,8 +89,6 @@ Base URL: `http://localhost:3170`
 | DELETE | /products/:id  | Admin | Hapus produk       |
 | POST   | /orders        | Bearer| Buat order         |
 | GET    | /orders        | Bearer| List order         |
-
----
 
 ## Contoh Request dan Response
 ### Register
@@ -181,4 +173,3 @@ Qty : 2
 Total : Rp 50000000
 -----------------------------
 ```
-````
